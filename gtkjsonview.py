@@ -7,11 +7,15 @@ import simplejson
 
 def add_item(key, data, model, parent = None):
   if isinstance(data, dict):
-    walk_tree(data, model, parent)
+    if len(key):
+      obj = model.append(parent, [str(key) + ' (object)'])
+      walk_tree(data, model, obj)
+    else:
+      walk_tree(data, model, parent)
   elif isinstance(data, list):
     arr = model.append(parent, [key + ' (array)'])
     for index in range(0, len(data)-1):
-      add_item(index, data[index], model, model.append(arr, ['item:' + str(index)]))
+      add_item('', data[index], model, model.append(arr, ['item:' + str(index)]))
   elif isinstance(data, unicode):
     if len(data) > 256:
       data = data[0:255] + "..."
