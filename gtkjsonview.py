@@ -20,8 +20,11 @@ def add_item(key, data, model, parent = None):
     model.append(parent, [key + ' : ' + str(data)])
 
 def walk_tree(data, model, parent = None):
-  for key in data:
-    add_item(key, data[key], model, parent)
+  if isinstance(data, list):
+    add_item('', data, model, parent)
+  else:
+    for key in data:
+      add_item(key, data[key], model, parent)
 
 win = gtk.Window()
 win.connect('destroy', gtk.main_quit)
