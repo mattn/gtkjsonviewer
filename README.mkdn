@@ -12,7 +12,8 @@ Usage:
 
 Screenshot:
 -----------
-  ![GtkJsonView](http://farm4.static.flickr.com/3364/3252616136_17c6144a83_o_d.png)
+
+  ![GtkJsonView](http://farm4.static.flickr.com/3529/3252639468_9c41d0e97f_o_d.png)
 
 Require:
 ------
