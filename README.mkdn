@@ -3,17 +3,19 @@ GtkJsonView : A simple json viewer written in GTK.
 
 Usage:
 ------
-	curl http://twitter.com/statuses/user_timeline/mattn_jp.json | gtkjsonview.py
 
-	maybe, you may have to specify as following on windows.
+  curl http://twitter.com/statuses/user_timeline/mattn_jp.json | gtkjsonview.py
 
-	curl http://... | python gtkjsonview.py
+  maybe, you may have to specify as following on windows.
+
+  curl http://... | python gtkjsonview.py
 
 Screenshot:
 -----------
-![Alt text](/path/to/img.jpg)
+  ![GtkJsonView](http://farm4.static.flickr.com/3364/3252616136_17c6144a83_o_d.png)
 
 Require:
 ------
-	python pygtk
+
+  python pygtk
 
