@@ -15,5 +15,7 @@ GtkJsonView : A simple json viewer written in GTK.
 
 # Require
 
-  Gtk
-  simplejson
+* Gtk
+* simplejson
+
+ sudo pip install simplejson
