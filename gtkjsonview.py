@@ -20,8 +20,8 @@ def add_item(key, data, model, parent = None):
     if len(data) > 256:
       data = data[0:255] + "..."
       model.append(parent, [key + ' : ' + data])
-  else:
-    model.append(parent, [key + ' : ' + str(data)])
+    else:
+      model.append(parent, [key + ' : ' + str(data)])
 
 def walk_tree(data, model, parent = None):
   if isinstance(data, list):
