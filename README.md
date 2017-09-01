@@ -3,11 +3,7 @@ GtkJsonView : A simple json viewer written in GTK.
 
 # Usage
 
-  curl http://twitter.com/statuses/user_timeline/mattn_jp.json | gtkjsonview.py
-
-  maybe, you may have to specify as following on windows.
-
-  curl http://... | python gtkjsonview.py
+  python gtkjsonview.py test.json
 
 # Screenshot
 
@@ -15,7 +11,8 @@ GtkJsonView : A simple json viewer written in GTK.
 
 # Require
 
-* Gtk
-* simplejson
+* Python 3
+* Gtk module
+* simplejson module
 
  sudo pip install simplejson
