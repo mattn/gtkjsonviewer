@@ -16,10 +16,10 @@ def add_item(key, data, model, parent = None):
     arr = model.append(parent, [key + ' (array)'])
     for index in range(0, len(data)-1):
       add_item('', data[index], model, model.append(arr, ['item:' + str(index)]))
-      # elif isinstance(data, unicode):
-      #   if len(data) > 256:
-      #     data = data[0:255] + "..."
-      #   model.append(parent, [key + ' : ' + data])
+  elif isinstance(data, str):
+    if len(data) > 256:
+      data = data[0:255] + "..."
+      model.append(parent, [key + ' : ' + data])
   else:
     model.append(parent, [key + ' : ' + str(data)])
 
