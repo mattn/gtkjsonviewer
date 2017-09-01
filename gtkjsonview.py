@@ -14,7 +14,7 @@ def add_item(key, data, model, parent = None):
       walk_tree(data, model, parent)
   elif isinstance(data, list):
     arr = model.append(parent, [key + ' (array)'])
-    for index in range(0, len(data)-1):
+    for index in range(0, len(data)):
       add_item('', data[index], model, model.append(arr, ['item:' + str(index)]))
   elif isinstance(data, str):
     if len(data) > 256:
