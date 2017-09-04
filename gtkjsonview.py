@@ -15,13 +15,16 @@ def add_item(key, data, model, parent = None):
   elif isinstance(data, list):
     arr = model.append(parent, [key + ' (array)'])
     for index in range(0, len(data)):
-      add_item('', data[index], model, model.append(arr, ['item:' + str(index)]))
+      add_item('', data[index], model, model.append(arr, ['[' + str(index) + ']']))
   elif isinstance(data, str):
     if len(data) > 256:
       data = data[0:255] + "..."
-      model.append(parent, [key + ' : ' + data])
+      model.append(parent, [key + ' : "' + data + '"'])
     else:
+      model.append(parent, [key + ' : "' + data + '"'])
+  elif isinstance(data, int):
       model.append(parent, [key + ' : ' + str(data)])
+
 
 def walk_tree(data, model, parent = None):
   if isinstance(data, list):
