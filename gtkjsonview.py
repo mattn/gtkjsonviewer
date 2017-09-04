@@ -3,7 +3,11 @@ import os
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-import simplejson as json
+try:
+  import json
+except:
+  import simplejson as json
+  pass
 
 def add_item(key, data, model, parent = None):
   if isinstance(data, dict):
@@ -22,13 +26,17 @@ def add_item(key, data, model, parent = None):
       model.append(parent, [key + ' : ' + data])
     else:
       model.append(parent, [key + ' : ' + str(data)])
+  else:
+    model.append(parent, [str(data)])
 
 def walk_tree(data, model, parent = None):
   if isinstance(data, list):
     add_item('', data, model, parent)
-  else:
+  elif isinstance(data, dict):
     for key in data:
       add_item(key, data[key], model, parent)
+  else:
+    add_item('', data, model, parent)
 
 win = Gtk.Window()
 win.connect('destroy', Gtk.main_quit)
