@@ -10,11 +10,11 @@ except:
   pass
 
 if len(sys.argv) == 2:
-  data = open(sys.argv[1]).read().strip()
+  raw_data = open(sys.argv[1]).read().strip()
 else:
-  data = sys.stdin.read().strip()
-if data[0] == '(' and data[-1] == ')':
-  data = data[1:-1]
+  raw_data = sys.stdin.read().strip()
+if raw_data[0] == '(' and raw_data[-1] == ')':
+  raw_data = raw_data[1:-1]
 
 
 color_type = 'blue'
@@ -59,6 +59,8 @@ def walk_tree(data, model, parent = None):
   else:
     add_item('', data, model, parent)
 
+data = json.loads(raw_data)
+
 class JSONViewerWindow(Gtk.Window):
     def __init__(self):
       Gtk.Window.__init__(self, title="JSon Viewer")
@@ -69,10 +71,11 @@ class JSONViewerWindow(Gtk.Window):
       cell = Gtk.CellRendererText()
       tvcol = Gtk.TreeViewColumn('JSON', cell, markup=0)
       tree.append_column(tvcol)
-
-      swin.add_with_viewport(tree)
+      swin.add(tree)
       self.add(swin)
-      walk_tree(json.loads(data), model)
+      walk_tree(data, model)
+
+
 
 win = JSONViewerWindow()
 win.connect("delete-event", Gtk.main_quit)
