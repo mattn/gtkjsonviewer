@@ -3,7 +3,13 @@ GtkJsonView : A simple json viewer written in GTK.
 
 # Usage
 
+## From a json file
+
   python gtkjsonview.py test.json
+
+## From an input stream
+
+ echo '[{"id":"1"}]' | python gtkjsonview.py
 
 # Screenshot
 
