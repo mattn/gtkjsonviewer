@@ -43,11 +43,9 @@ def add_item(key, data, model, parent = None):
       model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
                             '<b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
     else:
-      if key:
-        model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                              '  <b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
-      else:
-        model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
+      model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
+
   elif isinstance(data, int):
     model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
                           '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
@@ -66,9 +64,7 @@ def walk_tree(data, model, parent = None):
 #return the json query given a path
 def to_jq(path, data):
   indices = path.get_indices()
-  depth  = path.get_depth()
   jq = ''
-  depth_current = 0
   is_array_index = False
 
   #the expression must begin with identity `.`
@@ -76,9 +72,9 @@ def to_jq(path, data):
   if not isinstance(data, dict):
     jq += '.'
 
-  while depth_current < depth:
+  for indice in indices:
     if isinstance(data, dict):
-      key = (list(data)[indices[depth_current]])
+      key = (list(data)[indice])
       jq += '.' + key
       data = data[key]
       if isinstance(data, list):
@@ -86,7 +82,7 @@ def to_jq(path, data):
         is_array_index = True
     elif isinstance(data, list):
       if is_array_index:
-        selected_index = indices[depth_current]
+        selected_index = indice
         jq = jq[:-2]   #remove []
         jq += '[{}]'.format(selected_index)
         data = data[selected_index]
@@ -94,8 +90,6 @@ def to_jq(path, data):
       else:
         jq += '[]'
         is_array_index = True
-
-    depth_current += 1
 
   return jq
 
