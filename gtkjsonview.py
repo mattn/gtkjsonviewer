@@ -102,6 +102,8 @@ class JSONViewerWindow(Gtk.Window):
       self.label_path = Gtk.Label()
       self.label_path.set_selectable(True)
 
+      model = Gtk.TreeStore(str)
+
       try:
         self.data = json.loads(raw_data)
         walk_tree(self.data, model)
@@ -110,7 +112,6 @@ class JSONViewerWindow(Gtk.Window):
 
       swintree = Gtk.ScrolledWindow()
       swinpath = Gtk.ScrolledWindow()
-      model = Gtk.TreeStore(str)
       tree = Gtk.TreeView(model)
       cell = Gtk.CellRendererText()
       tvcol = Gtk.TreeViewColumn('JSON', cell, markup=0)
