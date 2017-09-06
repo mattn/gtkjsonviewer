@@ -102,14 +102,14 @@ class JSONViewerWindow(Gtk.Window):
       self.label_path = Gtk.Label()
       self.label_path.set_selectable(True)
 
-      model = Gtk.TreeStore(str)
+      self.data = None
 
       try:
         self.data = json.loads(raw_data)
-        walk_tree(self.data, model)
       except Exception as e:
         self.label_path.set_text("Input error:\n" + str(e))
 
+      model = Gtk.TreeStore(str)
       swintree = Gtk.ScrolledWindow()
       swinpath = Gtk.ScrolledWindow()
       tree = Gtk.TreeView(model)
@@ -126,6 +126,9 @@ class JSONViewerWindow(Gtk.Window):
       swintree.add(tree)
       swinpath.add(self.label_path)
       self.add(box)
+
+      if self.data:
+        walk_tree(self.data, model)
 
     def on_selection_changed(self, tree_selection) :
       (model, iter_current) = tree_selection.get_selected()
