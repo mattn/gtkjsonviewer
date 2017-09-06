@@ -34,7 +34,8 @@ def add_item(key, data, model, parent = None):
       walk_tree(data, model, parent)
   elif isinstance(data, list):
     arr = model.append(parent, ['<span foreground="'+color_array+'">'+ key + '</span> '
-                                '<span foreground="'+color_type+'"><b>[]</b></span>'])
+                                '<span foreground="'+color_type+'"><b>[]</b></span> ' +
+                                '<span foreground="'+color_integer+'">' + str(len(data)) + '</span>'])
     for index in range(0, len(data)):
       add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">' + str(index) + '</span><b><span foreground="'+color_type+'">]</span></b>']))
   elif isinstance(data, str):
