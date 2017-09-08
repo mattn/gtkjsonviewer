@@ -1,6 +1,7 @@
 import sys
 import os
 import gi
+import select
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 try:
@@ -9,11 +10,14 @@ except:
   import simplejson as json
   pass
 
+raw_data = ''
+
 if len(sys.argv) == 2:
   raw_data = open(sys.argv[1]).read().strip()
-else:
+elif select.select([sys.stdin,],[],[],0.0)[0]:
   raw_data = sys.stdin.read().strip()
-if raw_data[0] == '(' and raw_data[-1] == ')':
+
+if raw_data and raw_data[0] == '(' and raw_data[-1] == ')':
   raw_data = raw_data[1:-1]
 
 color_array = 'yellow'
@@ -37,7 +41,9 @@ def add_item(key, data, model, parent = None):
                                 '<span foreground="'+color_type+'"><b>[]</b></span> ' +
                                 '<span foreground="'+color_integer+'">' + str(len(data)) + '</span>'])
     for index in range(0, len(data)):
-      add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">' + str(index) + '</span><b><span foreground="'+color_type+'">]</span></b>']))
+      add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">'
+                                                          + str(index)
+                                                          + '</span><b><span foreground="'+color_type+'">]</span></b>']))
   elif isinstance(data, str):
     if len(data) > 256:
       data = data[0:255] + "..."
@@ -99,20 +105,32 @@ class JSONViewerWindow(Gtk.Window):
       Gtk.Window.__init__(self, title="JSon Viewer")
       self.set_default_size(600, 400)
 
-      self.label_path = Gtk.Label()
-      self.label_path.set_selectable(True)
+      self.label_info = Gtk.Label()
+      self.label_info.set_selectable(True)
 
       self.data = None
 
-      try:
-        self.data = json.loads(raw_data)
-      except Exception as e:
-        self.label_path.set_text("Input error:\n" + str(e))
+      if(raw_data):
+        try:
+          self.parse_json(raw_data)
+        except Exception as e:
+          self.label_info.set_text(str(e))
+      else:
+        self.label_info.set_text("No data loaded")
 
-      model = Gtk.TreeStore(str)
+      menubar = Gtk.MenuBar()
+      menuitem_file = Gtk.MenuItem(label="File")
+      menubar.append(menuitem_file)
+      menu = Gtk.Menu()
+      menuitem_file.set_submenu(menu)
+      menuitem_file_open = Gtk.MenuItem(label="Open")
+      menuitem_file_open.connect("activate", self.open_callback)
+      menu.append(menuitem_file_open)
+
+      self.model = Gtk.TreeStore(str)
       swintree = Gtk.ScrolledWindow()
       swinpath = Gtk.ScrolledWindow()
-      tree = Gtk.TreeView(model)
+      tree = Gtk.TreeView(self.model)
       cell = Gtk.CellRendererText()
       tvcol = Gtk.TreeViewColumn('JSON', cell, markup=0)
 
@@ -121,21 +139,53 @@ class JSONViewerWindow(Gtk.Window):
       tree.append_column(tvcol)
 
       box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+      box.pack_start(menubar, False, False, 1)
       box.pack_start(swintree, True, True, 1)
       box.pack_start(swinpath, False, False, 1)
       swintree.add(tree)
-      swinpath.add(self.label_path)
+      swinpath.add(self.label_info)
       self.add(box)
 
       if self.data:
-        walk_tree(self.data, model)
+        walk_tree(self.data, self.model)
+
+    def parse_json(self, data):
+      self.data = json.loads(data)
+
+    def open_callback(self, action):
+        open_dialog = Gtk.FileChooserDialog("Select a JSON file", self,
+                                            Gtk.FileChooserAction.OPEN,
+                                            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                             Gtk.STOCK_OPEN, Gtk.ResponseType.ACCEPT))
+        open_dialog.set_local_only(False)
+        open_dialog.set_modal(True)
+        open_dialog.connect("response", self.open_response_cb)
+        open_dialog.show()
+
+    def open_response_cb(self, open_dialog, response_id):
+      if response_id == Gtk.ResponseType.ACCEPT:
+        try:
+          file = open_dialog.get_file()
+          [success, content, etags] = file.load_contents(None)
+          if success:
+            self.parse_json(content.decode("utf-8"))
+            self.model.clear()
+            walk_tree(self.data, self.model)
+            self.label_info.set_text('')
+          else:
+            raise ValueError('Error while opening ' + open_dialog.get_filename())
+            open_dialog.destroy()
+        except Exception as e:
+          self.label_info.set_text(str(e))
+        finally:
+          open_dialog.destroy()
 
     def on_selection_changed(self, tree_selection) :
       (model, iter_current) = tree_selection.get_selected()
       path = model.get_path(iter_current)
       jq = to_jq(path, self.data)
       jq_str = ''.join(jq)
-      self.label_path.set_text(jq_str)
+      self.label_info.set_text(jq_str)
 
 win = JSONViewerWindow()
 win.connect("delete-event", Gtk.main_quit)
