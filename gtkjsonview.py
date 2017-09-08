@@ -112,11 +112,14 @@ class JSONViewerWindow(Gtk.Window):
 
       self.data = None
 
+      column_title = ''
+
       if(raw_data):
         try:
           self.parse_json(raw_data)
         except Exception as e:
           self.label_info.set_text(str(e))
+        column_title = '<input stream>'
       else:
         self.label_info.set_text("No data loaded")
 
@@ -135,11 +138,13 @@ class JSONViewerWindow(Gtk.Window):
       self.tree = Gtk.TreeView(self.model)
       self.tree.connect("button-release-event", self.on_treeview_button_press_event)
       cell = Gtk.CellRendererText()
-      tvcol = Gtk.TreeViewColumn('JSON', cell, markup=0)
+
+
+      self.tvcol = Gtk.TreeViewColumn(column_title, cell, markup=0)
 
       tree_selection = self.tree.get_selection()
       tree_selection.connect("changed", self.on_selection_changed)
-      self.tree.append_column(tvcol)
+      self.tree.append_column(self.tvcol)
 
       box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
       box.pack_start(menubar, False, False, 1)
@@ -189,6 +194,7 @@ class JSONViewerWindow(Gtk.Window):
             self.model.clear()
             walk_tree(self.data, self.model)
             self.label_info.set_text('')
+            self.tvcol.set_title(open_dialog.get_filename())
           else:
             raise ValueError('Error while opening ' + open_dialog.get_filename())
         except Exception as e:
