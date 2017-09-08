@@ -11,10 +11,11 @@ except:
   pass
 
 raw_data = ''
+from_stdin = select.select([sys.stdin,],[],[],0.0)[0]
 
 if len(sys.argv) == 2:
   raw_data = open(sys.argv[1]).read().strip()
-elif select.select([sys.stdin,],[],[],0.0)[0]:
+elif from_stdin:
   raw_data = sys.stdin.read().strip()
 
 if raw_data and raw_data[0] == '(' and raw_data[-1] == ')':
@@ -119,7 +120,12 @@ class JSONViewerWindow(Gtk.Window):
           self.parse_json(raw_data)
         except Exception as e:
           self.label_info.set_text(str(e))
-        column_title = '<input stream>'
+
+        if from_stdin:
+          column_title = '<input stream>'
+        else:
+          column_title = sys.argv[1]
+
       else:
         self.label_info.set_text("No data loaded")
 
