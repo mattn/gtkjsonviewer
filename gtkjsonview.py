@@ -74,7 +74,7 @@ def to_jq(path, data):
   jq = ''
   is_array_index = False
 
-  #the expression must begin with identity `.`
+  #the expression must begins with identity `.`
   #if the first element is not a dict, add a dot
   if not isinstance(data, dict):
     jq += '.'
@@ -176,7 +176,8 @@ class JSONViewerWindow(Gtk.Window):
         open_dialog.set_local_only(False)
         open_dialog.set_modal(True)
         open_dialog.connect("response", self.open_response_cb)
-        open_dialog.show()
+        open_dialog.run()
+        open_dialog.destroy()
 
     def open_response_cb(self, open_dialog, response_id):
       if response_id == Gtk.ResponseType.ACCEPT:
@@ -190,11 +191,8 @@ class JSONViewerWindow(Gtk.Window):
             self.label_info.set_text('')
           else:
             raise ValueError('Error while opening ' + open_dialog.get_filename())
-            open_dialog.destroy()
         except Exception as e:
           self.label_info.set_text(str(e))
-        finally:
-          open_dialog.destroy()
 
     def on_selection_changed(self, tree_selection) :
       jq = self.tree_selection_to_jq(tree_selection)
