@@ -154,8 +154,10 @@ class JSONViewerWindow(Gtk.Window):
 
     def tree_selection_to_jq(self, tree_selection):
       (model, iter_current) = tree_selection.get_selected()
-      path = model.get_path(iter_current)
-      jq = to_jq(path, self.data)
+      jq = ''
+      if iter_current:
+        path = model.get_path(iter_current)
+        jq = to_jq(path, self.data)
       return jq
 
     def copy_path_to_clipboard(self, menuitem):
