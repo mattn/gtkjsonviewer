@@ -3,7 +3,7 @@ import os
 import gi
 import select
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, Gio
 try:
   import json
 except:
@@ -21,12 +21,21 @@ elif from_stdin:
 if raw_data and raw_data[0] == '(' and raw_data[-1] == ')':
   raw_data = raw_data[1:-1]
 
-color_array = 'yellow'
-color_type = 'orange'
-color_string = 'pink'
-color_integer = 'red'
-color_object = 'yellow'
-color_key = 'light green'
+is_dark = Gtk.Settings().get_property("gtk-application-prefer-dark-theme")
+if is_dark:
+  color_array = 'yellow'
+  color_type = 'orange'
+  color_string = 'pink'
+  color_integer = 'red'
+  color_object = 'yellow'
+  color_key = 'light green'
+else:
+  color_array = 'magenta'
+  color_type = 'orange'
+  color_string = 'purple'
+  color_integer = 'red'
+  color_object = 'blue'
+  color_key = 'dark green'
 
 def add_item(key, data, model, parent = None):
   if isinstance(data, dict):
