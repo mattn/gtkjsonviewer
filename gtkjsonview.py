@@ -1,7 +1,6 @@
 import sys
 import os
 import gi
-import select
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, Gio
 try:
@@ -11,7 +10,7 @@ except:
   pass
 
 raw_data = ''
-from_stdin = select.select([sys.stdin,],[],[],0.0)[0]
+from_stdin = not(sys.stdin.isatty())
 
 if len(sys.argv) == 2:
   raw_data = open(sys.argv[1]).read().strip()
