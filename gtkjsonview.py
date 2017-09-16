@@ -20,7 +20,7 @@ elif from_stdin:
 if raw_data and raw_data[0] == '(' and raw_data[-1] == ')':
   raw_data = raw_data[1:-1]
 
-is_dark = Gtk.Settings().get_property("gtk-application-prefer-dark-theme")
+is_dark = Gtk.Settings.get_default().get_property("gtk-application-prefer-dark-theme")
 if is_dark:
   color_array = 'yellow'
   color_type = 'orange'
