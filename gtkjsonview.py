@@ -56,11 +56,17 @@ def add_item(key, data, model, parent = None):
   elif isinstance(data, str):
     if len(data) > 256:
       data = data[0:255] + "..."
-      model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+      if len(key):
+        model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
                             '<b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
+      else:
+        model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
     else:
-      model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+      if len(key):
+        model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
                             '  <b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
+      else:
+        model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
 
   elif isinstance(data, int):
     model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
