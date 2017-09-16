@@ -2,26 +2,39 @@ import sys
 import os
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 try:
   import json
 except:
   import simplejson as json
   pass
 
+raw_data = ''
+from_stdin = not(sys.stdin.isatty())
+
 if len(sys.argv) == 2:
   raw_data = open(sys.argv[1]).read().strip()
-else:
+elif from_stdin:
   raw_data = sys.stdin.read().strip()
-if raw_data[0] == '(' and raw_data[-1] == ')':
+
+if raw_data and raw_data[0] == '(' and raw_data[-1] == ')':
   raw_data = raw_data[1:-1]
 
-color_array = 'yellow'
-color_type = 'orange'
-color_string = 'pink'
-color_integer = 'red'
-color_object = 'yellow'
-color_key = 'light green'
+is_dark = Gtk.Settings().get_property("gtk-application-prefer-dark-theme")
+if is_dark:
+  color_array = 'yellow'
+  color_type = 'orange'
+  color_string = 'pink'
+  color_integer = 'red'
+  color_object = 'yellow'
+  color_key = 'light green'
+else:
+  color_array = 'magenta'
+  color_type = 'orange'
+  color_string = 'purple'
+  color_integer = 'red'
+  color_object = 'blue'
+  color_key = 'dark green'
 
 def add_item(key, data, model, parent = None):
   if isinstance(data, dict):
@@ -37,7 +50,9 @@ def add_item(key, data, model, parent = None):
                                 '<span foreground="'+color_type+'"><b>[]</b></span> ' +
                                 '<span foreground="'+color_integer+'">' + str(len(data)) + '</span>'])
     for index in range(0, len(data)):
-      add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">' + str(index) + '</span><b><span foreground="'+color_type+'">]</span></b>']))
+      add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">'
+                                                          + str(index)
+                                                          + '</span><b><span foreground="'+color_type+'">]</span></b>']))
   elif isinstance(data, str):
     if len(data) > 256:
       data = data[0:255] + "..."
@@ -68,14 +83,14 @@ def to_jq(path, data):
   jq = ''
   is_array_index = False
 
-  #the expression must begin with identity `.`
+  #the expression must begins with identity `.`
   #if the first element is not a dict, add a dot
   if not isinstance(data, dict):
     jq += '.'
 
-  for indice in indices:
+  for index in indices:
     if isinstance(data, dict):
-      key = (list(data)[indice])
+      key = (list(data)[index])
       jq += '.' + key
       data = data[key]
       if isinstance(data, list):
@@ -83,7 +98,7 @@ def to_jq(path, data):
         is_array_index = True
     elif isinstance(data, list):
       if is_array_index:
-        selected_index = indice
+        selected_index = index
         jq = jq[:-2]   #remove []
         jq += '[{}]'.format(selected_index)
         data = data[selected_index]
@@ -99,43 +114,131 @@ class JSONViewerWindow(Gtk.Window):
       Gtk.Window.__init__(self, title="JSon Viewer")
       self.set_default_size(600, 400)
 
-      self.label_path = Gtk.Label()
-      self.label_path.set_selectable(True)
+      self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+
+      self.label_info = Gtk.Label()
+      self.label_info.set_selectable(True)
 
       self.data = None
 
-      try:
-        self.data = json.loads(raw_data)
-      except Exception as e:
-        self.label_path.set_text("Input error:\n" + str(e))
+      column_title = ''
 
-      model = Gtk.TreeStore(str)
+      if(raw_data):
+        try:
+          self.parse_json(raw_data)
+        except Exception as e:
+          self.label_info.set_text(str(e))
+
+        if from_stdin:
+          column_title = '<input stream>'
+        else:
+          column_title = sys.argv[1]
+
+      else:
+        self.label_info.set_text("No data loaded")
+
+      menubar = Gtk.MenuBar()
+      menuitem_file = Gtk.MenuItem(label="File")
+      menubar.append(menuitem_file)
+      menu = Gtk.Menu()
+      menuitem_file.set_submenu(menu)
+      menuitem_file_open = Gtk.MenuItem(label="Open")
+      menuitem_file_open.connect("activate", self.open_callback)
+      menu.append(menuitem_file_open)
+
+      self.model = Gtk.TreeStore(str)
       swintree = Gtk.ScrolledWindow()
       swinpath = Gtk.ScrolledWindow()
-      tree = Gtk.TreeView(model)
+      self.tree = Gtk.TreeView(self.model)
+      self.tree.connect("button-release-event", self.on_treeview_button_press_event)
       cell = Gtk.CellRendererText()
-      tvcol = Gtk.TreeViewColumn('JSON', cell, markup=0)
 
-      tree_selection = tree.get_selection()
+
+      self.tvcol = Gtk.TreeViewColumn(column_title, cell, markup=0)
+
+      tree_selection = self.tree.get_selection()
       tree_selection.connect("changed", self.on_selection_changed)
-      tree.append_column(tvcol)
+      self.tree.append_column(self.tvcol)
 
       box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+      box.pack_start(menubar, False, False, 1)
       box.pack_start(swintree, True, True, 1)
       box.pack_start(swinpath, False, False, 1)
-      swintree.add(tree)
-      swinpath.add(self.label_path)
+      swintree.add(self.tree)
+      swinpath.add(self.label_info)
       self.add(box)
 
       if self.data:
-        walk_tree(self.data, model)
+        walk_tree(self.data, self.model)
+
+    def tree_selection_to_jq(self, tree_selection):
+      (model, iter_current) = tree_selection.get_selected()
+      jq = ''
+      if iter_current:
+        path = model.get_path(iter_current)
+        jq = to_jq(path, self.data)
+      return jq
+
+    def copy_path_to_clipboard(self, menuitem):
+      tree_selection = self.tree.get_selection()
+      jq = self.tree_selection_to_jq(tree_selection)
+      self.clipboard.set_text(jq, -1)
+
+    def parse_json(self, data):
+      self.data = json.loads(data)
+
+    def open_callback(self, action):
+        open_dialog = Gtk.FileChooserDialog("Select a JSON file", self,
+                                            Gtk.FileChooserAction.OPEN,
+                                            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                             Gtk.STOCK_OPEN, Gtk.ResponseType.ACCEPT))
+        open_dialog.set_local_only(False)
+        open_dialog.set_modal(True)
+        open_dialog.connect("response", self.open_response_cb)
+        open_dialog.run()
+        open_dialog.destroy()
+
+    def open_response_cb(self, open_dialog, response_id):
+      if response_id == Gtk.ResponseType.ACCEPT:
+        try:
+          file = open_dialog.get_file()
+          [success, content, etags] = file.load_contents(None)
+          if success:
+            self.parse_json(content.decode("utf-8"))
+            self.model.clear()
+            walk_tree(self.data, self.model)
+            self.label_info.set_text('')
+            self.tvcol.set_title(open_dialog.get_filename())
+          else:
+            raise ValueError('Error while opening ' + open_dialog.get_filename())
+        except Exception as e:
+          self.label_info.set_text(str(e))
 
     def on_selection_changed(self, tree_selection) :
-      (model, iter_current) = tree_selection.get_selected()
-      path = model.get_path(iter_current)
-      jq = to_jq(path, self.data)
-      jq_str = ''.join(jq)
-      self.label_path.set_text(jq_str)
+      jq = self.tree_selection_to_jq(tree_selection)
+      self.label_info.set_text(jq)
+
+    def on_treeview_button_press_event(self, treeview, event):
+      if event.button == 3:
+        x = int(event.x)
+        y = int(event.y)
+        time = event.time
+        pthinfo = treeview.get_path_at_pos(x, y)
+
+        if pthinfo is not None:
+          path, col, cellx, celly = pthinfo
+          treeview.grab_focus()
+          treeview.set_cursor( path, col, 0)
+
+          self.contextual_menu = Gtk.Menu()
+          menuitem_copy_path = Gtk.MenuItem(label="Copy path to clipboard")
+          menuitem_copy_path.connect("activate", self.copy_path_to_clipboard)
+          menuitem_copy_path.show()
+          self.contextual_menu.append(menuitem_copy_path)
+
+          self.contextual_menu.popup(None, None, None, event.button, time, 0)
+          return True
+      return False
 
 win = JSONViewerWindow()
 win.connect("delete-event", Gtk.main_quit)
