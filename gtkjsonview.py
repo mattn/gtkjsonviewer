@@ -26,52 +26,59 @@ if is_dark:
   color_array = 'yellow'
   color_type = 'orange'
   color_string = 'pink'
-  color_integer = 'red'
+  color_number = 'red'
   color_object = 'yellow'
   color_key = 'light green'
 else:
   color_array = 'magenta'
   color_type = 'orange'
   color_string = 'purple'
-  color_integer = 'red'
+  color_number = 'red'
   color_object = 'blue'
   color_key = 'dark green'
+
+def format_item(color_key, color_value, key, value):
+  return '<span foreground="{}">{}</span> <span foreground="{}"><b>{}</b></span>'.format(color_key,
+                                                                                         key,
+                                                                                         color_value,
+                                                                                         value)
+
+def span(color, value):
+  return '<span foreground="{}">"{}"</span>'.format(color, value)
 
 def add_item(key, data, model, parent = None):
   if isinstance(data, dict):
     if len(key):
-      obj = model.append(parent, ['<span foreground="'+color_object+'">'
-                                  + str(key) + '</span>' +
-                                  ' <span foreground="'+color_type+'"><b>{}</b></span>'])
+      obj = model.append(parent, [format_item (color_object, color_type, str (key), '{}')])
       walk_tree(data, model, obj)
     else:
       walk_tree(data, model, parent)
   elif isinstance(data, list):
-    arr = model.append(parent, ['<span foreground="'+color_array+'">'+ key + '</span> '
-                                '<span foreground="'+color_type+'"><b>[]</b></span> ' +
-                                '<span foreground="'+color_integer+'">' + str(len(data)) + '</span>'])
+    item = format_item(color_array, color_number, key, str(len(data)))
+    arr = model.append(parent, [item])
     for index in range(0, len(data)):
-      add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">'
-                                                          + str(index)
-                                                          + '</span><b><span foreground="'+color_type+'">]</span></b>']))
+      item = '<b><span foreground="{}">[</span></b><span foreground="{}">{}</span><b><span foreground="{}">]</span></b>'.format(color_type, color_number, str(index), color_type)
+      add_item('', data[index], model, model.append(arr, [item]))
   elif isinstance(data, str):
     if len(data) > 256:
-      data = data[0:255] + "..."
+      data = data[0:255] + " <i>...</i> "
       if len(key):
-        model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                            '<b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
+        item = format_item(color_key, color_string, key, data)
+        model.append(parent, [item])
       else:
-        model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
+        item = span(color_string, data)
+        model.append(parent, [item])
     else:
       if len(key):
-        model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                            '  <b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
+        item = format_item(color_key, color_string, key, data)
+        model.append(parent, [item])
       else:
-        model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
+        item = span(color_string, data)
+        model.append(parent, [item])
 
   elif isinstance(data, numbers.Real):
-    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                          '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
+    item = format_item(color_key, color_number, key, str(data))
+    model.append(parent, [item])
   else:
     model.append(parent, [str(data)])
 
