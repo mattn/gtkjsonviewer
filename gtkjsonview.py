@@ -3,6 +3,7 @@ import os
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
+import numbers
 try:
   import json
 except:
@@ -68,7 +69,7 @@ def add_item(key, data, model, parent = None):
       else:
         model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
 
-  elif isinstance(data, int):
+  elif isinstance(data, numbers.Real):
     model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
                           '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
   else:
