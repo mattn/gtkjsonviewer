@@ -79,7 +79,14 @@ def add_item(key, data, model, parent = None):
   elif isinstance(data, numbers.Real):
     item = format_item(color_key, color_number, key, str(data))
     model.append(parent, [item])
+  elif data is None:
+    item = '<span foreground="{}">{}</span> <span foreground="{}"><i>{}</i></span>'.format(color_key,
+                                                                                           key,
+                                                                                           color_type,
+                                                                                           'null')
+    model.append(parent, [item])
   else:
+    print('Warning: do not know how to format {} of type {}'.format(str(data)), data.__class__.__name__)
     model.append(parent, [str(data)])
 
 def walk_tree(data, model, parent = None):
