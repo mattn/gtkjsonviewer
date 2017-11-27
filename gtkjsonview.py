@@ -81,7 +81,8 @@ def add_item(key, data, model, parent = None):
     model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
                           '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
   else:
-    model.append(parent, [str(data)])
+    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+                          '  <b>:</b> <span foreground="'+color_integer+'">' + repr(data) + '</span>'])
 
 def walk_tree(data, model, parent = None):
   if isinstance(data, list):
