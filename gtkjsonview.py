@@ -55,12 +55,18 @@ def add_item(key, data, model, parent = None):
                                                           + '</span><b><span foreground="'+color_type+'">]</span></b>']))
 
   elif data == None:
-    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                          '  <b>:</b> <span foreground="'+color_integer+'">' + 'null' + '</span>'])
+    if len(key):
+      model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + 'null' + '</span>'])
+    else:
+      model.append(parent, ['<span foreground="'+color_integer+'">' + 'null' + '</span>'])
 
   elif isinstance(data, bool):
-    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                          '  <b>:</b> <span foreground="'+color_integer+'">' + str(data).lower() + '</span>'])
+    if len(key):
+      model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + str(data).lower() + '</span>'])
+    else:
+      model.append(parent, ['<span foreground="'+color_integer+'">' + str(data).lower() + '</span>'])
 
   elif isinstance(data, str):
     if len(data) > 256:
@@ -78,11 +84,18 @@ def add_item(key, data, model, parent = None):
         model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
 
   elif isinstance(data, int):
-    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                          '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
+    if len(key):
+      model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
+    else:
+      model.append(parent, ['<span foreground="'+color_integer+'">' + str(data) + '</span>'])
+
   else:
-    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                          '  <b>:</b> <span foreground="'+color_integer+'">' + repr(data) + '</span>'])
+    if len(key):
+      model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + repr(data) + '</span>'])
+    else:
+      model.append(parent, [repr(data)])
 
 def walk_tree(data, model, parent = None):
   if isinstance(data, list):
