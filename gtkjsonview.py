@@ -78,7 +78,7 @@ def walk_tree(data, model, parent = None):
   if isinstance(data, list):
     add_item('', data, model, parent)
   elif isinstance(data, dict):
-    for key in data:
+    for key in sorted(data):
       add_item(key, data[key], model, parent)
   else:
     add_item('', data, model, parent)
