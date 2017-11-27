@@ -53,6 +53,11 @@ def add_item(key, data, model, parent = None):
       add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">'
                                                           + str(index)
                                                           + '</span><b><span foreground="'+color_type+'">]</span></b>']))
+
+  elif data == None:
+    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
+                          '  <b>:</b> <span foreground="'+color_integer+'">' + 'null' + '</span>'])
+
   elif isinstance(data, bool):
     model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
                           '  <b>:</b> <span foreground="'+color_integer+'">' + str(data).lower() + '</span>'])
