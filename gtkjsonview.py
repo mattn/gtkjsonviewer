@@ -1,6 +1,7 @@
 import sys
 import os
 import gi
+import re
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
 try:
@@ -83,6 +84,11 @@ def walk_tree(data, model, parent = None):
   else:
     add_item('', data, model, parent)
 
+# Key/property names which match this regex syntax may appear in a
+# JSON path in their original unquoted form in dotted notation.
+# Otherwise they must use the quoted-bracked notation.
+jsonpath_unquoted_property_regex = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*$")
+
 #return the json query given a path
 def to_jq(path, data):
   indices = path.get_indices()
@@ -97,7 +103,10 @@ def to_jq(path, data):
   for index in indices:
     if isinstance(data, dict):
       key = (list(sorted(data))[index])
-      jq += '.' + key
+      if len(key)==0 or not jsonpath_unquoted_property_regex.match(key):
+        jq += '[\'{}\']'.format(key) # bracket notation (no initial dot)
+      else:
+        jq += '.' + key # dotted notation
       data = data[key]
       if isinstance(data, list):
         jq += '[]'
