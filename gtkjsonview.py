@@ -1,5 +1,9 @@
 import sys
 import os
+try:
+  from xml.sax.saxutils import escape
+except:
+  from cgi import escape
 import gi
 import re
 gi.require_version("Gtk", "3.0")
@@ -39,50 +43,73 @@ else:
 
 def add_item(key, data, model, parent = None):
   if isinstance(data, dict):
-    if len(key):
-      obj = model.append(parent, ['<span foreground="'+color_object+'">'
-                                  + str(key) + '</span>' +
+    if key is not None:
+      obj = model.append(parent, ['<span foreground="'+color_object+'">"'
+                                  + escape(key) + '"</span>' +
                                   ' <span foreground="'+color_type+'"><b>{}</b></span>'])
       walk_tree(data, model, obj)
     else:
       walk_tree(data, model, parent)
   elif isinstance(data, list):
-    arr = model.append(parent, ['<span foreground="'+color_array+'">'+ key + '</span> '
+    arr = model.append(parent, ['<span foreground="'+color_array+'">"'+ ('' if key is None else escape(key)) + '"</span> '
                                 '<span foreground="'+color_type+'"><b>[]</b></span> ' +
                                 '<span foreground="'+color_integer+'">' + str(len(data)) + '</span>'])
     for index in range(0, len(data)):
-      add_item('', data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">'
+      add_item(None, data[index], model, model.append(arr, ['<b><span foreground="'+color_type+'">'+'['+'</span></b><span foreground="'+color_integer+'">'
                                                           + str(index)
                                                           + '</span><b><span foreground="'+color_type+'">]</span></b>']))
+
+  elif data == None:
+    if key is not None:
+      model.append(parent, ['<span foreground="'+color_key+'">"' + escape(key) + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + 'null' + '</span>'])
+    else:
+      model.append(parent, ['<span foreground="'+color_integer+'">' + 'null' + '</span>'])
+
+  elif isinstance(data, bool):
+    if key is not None:
+      model.append(parent, ['<span foreground="'+color_key+'">"' + escape(key) + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + str(data).lower() + '</span>'])
+    else:
+      model.append(parent, ['<span foreground="'+color_integer+'">' + str(data).lower() + '</span>'])
+
   elif isinstance(data, str):
     if len(data) > 256:
       data = data[0:255] + "..."
-      if len(key):
-        model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                            '<b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
+      if key is not None:
+        model.append(parent, ['<span foreground="'+color_key+'">"' + escape(key) + '"</span>' +
+                            '<b>:</b> <span foreground="'+color_string+'">"' + escape(data) + '"</span>'])
       else:
-        model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
+        model.append(parent, ['<span foreground="'+color_string+'">"' + escape(data) + '"</span>'])
     else:
-      if len(key):
-        model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                            '  <b>:</b> <span foreground="'+color_string+'">"' + data + '"</span>'])
+      if key is not None:
+        model.append(parent, ['<span foreground="'+color_key+'">"' + escape(key) + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_string+'">"' + escape(data) + '"</span>'])
       else:
-        model.append(parent, ['<span foreground="'+color_string+'">"' + data + '"</span>'])
+        model.append(parent, ['<span foreground="'+color_string+'">"' + escape(data) + '"</span>'])
 
   elif isinstance(data, int):
-    model.append(parent, ['<span foreground="'+color_key+'">"' + key + '"</span>' +
-                          '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
+    if key is not None:
+      model.append(parent, ['<span foreground="'+color_key+'">"' + escape(key) + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + str(data) + '</span>'])
+    else:
+      model.append(parent, ['<span foreground="'+color_integer+'">' + str(data) + '</span>'])
+
   else:
-    model.append(parent, [str(data)])
+    if key is not None:
+      model.append(parent, ['<span foreground="'+color_key+'">"' + escape(key) + '"</span>' +
+                            '  <b>:</b> <span foreground="'+color_integer+'">' + escape(repr(data)) + '</span>'])
+    else:
+      model.append(parent, [escape(repr(data))])
 
 def walk_tree(data, model, parent = None):
   if isinstance(data, list):
-    add_item('', data, model, parent)
+    add_item(None, data, model, parent)
   elif isinstance(data, dict):
     for key in sorted(data):
       add_item(key, data[key], model, parent)
   else:
-    add_item('', data, model, parent)
+    add_item(None, data, model, parent)
 
 # Key/property names which match this regex syntax may appear in a
 # JSON path in their original unquoted form in dotted notation.
