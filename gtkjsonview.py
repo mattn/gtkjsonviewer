@@ -96,7 +96,7 @@ def to_jq(path, data):
 
   for index in indices:
     if isinstance(data, dict):
-      key = (list(data)[index])
+      key = (list(sorted(data))[index])
       jq += '.' + key
       data = data[key]
       if isinstance(data, list):
