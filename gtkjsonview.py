@@ -102,7 +102,7 @@ def to_jq(path, data):
 
   for index in indices:
     if isinstance(data, dict):
-      key = (list(data)[index])
+      key = (list(sorted(data))[index])
       if len(key)==0 or not jsonpath_unquoted_property_regex.match(key):
         jq += '[\'{}\']'.format(key) # bracket notation (no initial dot)
       else:
