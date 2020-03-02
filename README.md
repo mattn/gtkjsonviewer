@@ -5,12 +5,14 @@ A simple JSON viewer written in GTK.
 ## Usage
 
 ### From a JSON file
-
-    python gtkjsonview.py test.json
+```sh
+python gtkjsonview.py test.json
+```
 
 ### From an input stream
-
-    echo '[{"id":"1"}]' | python gtkjsonview.py
+```sh
+echo '[{"id":"1"}]' | python gtkjsonview.py
+```
 
 ## Screenshot
 
@@ -23,5 +25,6 @@ A simple JSON viewer written in GTK.
 * simplejson module
 
 Install:
-
-    sudo pip install simplejson
+```sh
+sudo pip install simplejson
+```
