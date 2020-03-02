@@ -1,24 +1,30 @@
-GtkJsonView : A simple json viewer written in GTK.
-==================================================
+GtkJsonView
+===========
+A simple JSON viewer written in GTK.
 
-# Usage
+## Usage
 
-## From a json file
+### From a JSON file
+```sh
+python gtkjsonview.py test.json
+```
 
-  python gtkjsonview.py test.json
+### From an input stream
+```sh
+echo '[{"id":"1"}]' | python gtkjsonview.py
+```
 
-## From an input stream
+## Screenshot
 
- echo '[{"id":"1"}]' | python gtkjsonview.py
+![GtkJsonView](http://farm4.static.flickr.com/3529/3252639468_9c41d0e97f_o_d.png)
 
-# Screenshot
-
-  ![GtkJsonView](http://farm4.static.flickr.com/3529/3252639468_9c41d0e97f_o_d.png)
-
-# Require
+## Dependencies
 
 * Python 3
-* Gtk module
+* GTK module
 * simplejson module
 
- sudo pip install simplejson
+Install:
+```sh
+sudo pip install simplejson
+```
