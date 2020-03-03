@@ -1,3 +1,18 @@
+#!/usr/bin/env python3
+"""GtkJsonView
+
+A simple JSON viewer written in GTK.
+
+Author: mattn
+URL: https://github.com/mattn/gtkjsonviewer
+
+Classes
+-------
+
+JSONViewerWindow()
+    The window.
+"""
+
 import numbers
 import os
 import re
@@ -154,7 +169,7 @@ def to_jq(path, data):
 
 class JSONViewerWindow(Gtk.Window):
     def __init__(self):
-        Gtk.Window.__init__(self, title="JSon Viewer")
+        Gtk.Window.__init__(self, title="JSON Viewer")
         self.set_default_size(600, 400)
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
@@ -192,7 +207,8 @@ class JSONViewerWindow(Gtk.Window):
         self.model = Gtk.TreeStore(str)
         swintree = Gtk.ScrolledWindow()
         swinpath = Gtk.ScrolledWindow()
-        self.tree = Gtk.TreeView(self.model)
+        self.tree = Gtk.TreeView()
+        self.tree.set_model(self.model)
         self.tree.connect("button-release-event", self.on_treeview_button_press_event)
         cell = Gtk.CellRendererText()
 
@@ -292,7 +308,8 @@ class JSONViewerWindow(Gtk.Window):
         return False
 
 
-win = JSONViewerWindow()
-win.connect("delete-event", Gtk.main_quit)
-win.show_all()
-Gtk.main()
+if __name__ == "__main__":
+    win = JSONViewerWindow()
+    win.connect("delete-event", Gtk.main_quit)
+    win.show_all()
+    Gtk.main()
