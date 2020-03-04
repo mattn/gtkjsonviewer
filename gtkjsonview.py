@@ -24,7 +24,7 @@ from gi.repository import Gtk, Gdk
 
 try:
     import json
-except:
+except ImportError:
     import simplejson as json
 
 raw_data = ""
@@ -40,19 +40,19 @@ if raw_data and raw_data[0] == "(" and raw_data[-1] == ")":
 
 is_dark = Gtk.Settings.get_default().get_property("gtk-application-prefer-dark-theme")
 if is_dark:
-    color_array = "yellow"
-    color_type = "orange"
-    color_string = "pink"
-    color_number = "red"
-    color_object = "yellow"
-    color_key = "light green"
+    color_array = "#f9f06b"  # Yellow
+    color_type = "#ffbe6f"  # Orange
+    color_string = "#dc8add"  # Purple
+    color_number = "#f66151"  # Red
+    color_object = "#99c1f1"  # Blue
+    color_key = "#8ff0a4"  # Green
 else:
-    color_array = "magenta"
-    color_type = "orange"
-    color_string = "purple"
-    color_number = "red"
-    color_object = "blue"
-    color_key = "dark green"
+    color_array = "#e5a50a"  # Yellow
+    color_type = "#c64600"  # Orange
+    color_string = "#613583"  # Purple
+    color_number = "#a51d2d"  # Red
+    color_object = "#1a5fb4"  # Blue
+    color_key = "#26a269"  # Green
 
 
 def format_item(color_key, color_value, key, value):
