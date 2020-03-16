@@ -56,7 +56,7 @@ else:
 
 
 def format_item(color_key, color_value, key, value):
-    return '<span foreground="{}">{}</span> <span foreground="{}"><b>{}</b></span>'.format(
+    return '<span foreground="{}">"{}"</span>: <span foreground="{}">{}</span>'.format(
         color_key, key, color_value, value
     )
 
@@ -67,7 +67,7 @@ def span(color, value):
 
 def add_item(key, data, model, parent=None):
     if isinstance(data, dict):
-        if len(key):
+        if key is not None:
             obj = model.append(
                 parent, [format_item(color_object, color_type, str(key), "{}")]
             )
@@ -81,19 +81,19 @@ def add_item(key, data, model, parent=None):
             item = '<b><span foreground="{}">[</span></b><span foreground="{}">{}</span><b><span foreground="{}">]</span></b>'.format(
                 color_type, color_number, str(index), color_type
             )
-            add_item("", data[index], model, model.append(arr, [item]))
+            add_item(None, data[index], model, model.append(arr, [item]))
     elif isinstance(data, str):
         if len(data) > 256:
             data = data[0:255] + " <i>...</i> "
-            if len(key):
-                item = format_item(color_key, color_string, key, data)
+            if key is not None:
+                item = format_item(color_key, color_string, key, f'"{data}"')
                 model.append(parent, [item])
             else:
                 item = span(color_string, data)
                 model.append(parent, [item])
         else:
-            if len(key):
-                item = format_item(color_key, color_string, key, data)
+            if key is not None:
+                item = format_item(color_key, color_string, key, f'"{data}"')
                 model.append(parent, [item])
             else:
                 item = span(color_string, data)
@@ -112,17 +112,17 @@ def add_item(key, data, model, parent=None):
             "Warning: do not know how to format {} of type {}".format(str(data)),
             data.__class__.__name__,
         )
-        model.append(parent, [str(data)])
+        model.append(parent, [repr(data)])
 
 
 def walk_tree(data, model, parent=None):
     if isinstance(data, list):
-        add_item("", data, model, parent)
+        add_item(None, data, model, parent)
     elif isinstance(data, dict):
         for key in sorted(data):
             add_item(key, data[key], model, parent)
     else:
-        add_item("", data, model, parent)
+        add_item(None, data, model, parent)
 
 
 # Key/property names which match this regex syntax may appear in a
@@ -131,7 +131,7 @@ def walk_tree(data, model, parent=None):
 jsonpath_unquoted_property_regex = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*$")
 
 
-# return the json query given a path
+# return the JSON query given a path
 def to_jq(path, data):
     indices = path.get_indices()
     jq = ""
