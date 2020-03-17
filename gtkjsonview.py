@@ -56,6 +56,10 @@ else:
 
 
 def format_item(color_key, color_value, key, value):
+    if key is None:
+    return '<span foreground="{}">[…]</span> <span foreground="{}">{}</span>'.format(
+        color_key, color_value, value
+    )
     return '<span foreground="{}">"{}"</span>: <span foreground="{}">{}</span>'.format(
         color_key, key, color_value, value
     )
