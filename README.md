@@ -1,6 +1,6 @@
 GtkJsonView
 ===========
-A simple JSON viewer written in GTK.
+A simple JSON viewer written in Python using GTK.
 
 ## Usage
 
@@ -21,10 +21,9 @@ echo '[{"id":"1"}]' | python gtkjsonview.py
 ## Dependencies
 
 * Python 3
-* GTK module
-* simplejson module
+* PyGObject module
 
 Install:
 ```sh
-sudo pip install simplejson
+sudo pip install PyGObject
 ```
