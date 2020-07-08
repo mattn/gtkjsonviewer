@@ -27,6 +27,7 @@ to_jq(path, data)
 """
 
 import numbers
+import json
 import os
 import re
 import sys
@@ -34,11 +35,6 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 # Key/property names which match this regex syntax may appear in a
 # JSON path in their original unquoted form in dotted notation.
