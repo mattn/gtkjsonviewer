@@ -282,15 +282,15 @@ class JSONViewerWindow(Gtk.Window):
         filefilter = Gtk.FileFilter()
         filefilter.add_pattern("*.json")
         dialog = Gtk.FileChooserDialog(
-            "Select a JSON file",
-            self,
-            Gtk.FileChooserAction.OPEN,
-            (
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OPEN,
-                Gtk.ResponseType.ACCEPT,
-            ),
+            title="Select a JSON file",
+            parent=self,
+            action=Gtk.FileChooserAction.OPEN
+        )
+        dialog.add_buttons(
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN,
+            Gtk.ResponseType.ACCEPT,
         )
         dialog.set_local_only(False)
         dialog.set_filter(filefilter)
