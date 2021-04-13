@@ -28,7 +28,6 @@ to_jq(path, data)
 
 import numbers
 import json
-import os
 import re
 import sys
 import gi
@@ -259,7 +258,7 @@ class JSONViewerWindow(Gtk.Window):
         tree_selection = self.treeview.get_selection()
         tree_selection.connect("changed", self.on_selection_changed)
 
-        box = Gtk.VBox()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.pack_start(menubar, False, False, 1)
         box.pack_start(swintree, True, True, 1)
         box.pack_start(swinpath, False, False, 1)
@@ -354,3 +353,4 @@ if __name__ == "__main__":
     win.connect("delete-event", Gtk.main_quit)
     win.show_all()
     Gtk.main()
+
