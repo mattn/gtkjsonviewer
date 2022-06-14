@@ -297,7 +297,7 @@ class JSONViewerWindow(Gtk.ApplicationWindow):
         )
         dialog.set_filter(filefilter)
         dialog.connect("response", self.open_response_cb)
-        dialog.show()
+        dialog.present()
 
     def open_response_cb(self, dialog, response_id):
         if response_id == Gtk.ResponseType.ACCEPT:
