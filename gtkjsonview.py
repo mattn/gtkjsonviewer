@@ -284,6 +284,7 @@ class JSONViewerWindow(Gtk.ApplicationWindow):
     def open_callback(self, action):
         filefilter = Gtk.FileFilter()
         filefilter.add_suffix("json")
+        filefilter.set_name('JSON')
         dialog = Gtk.FileChooserDialog(
             title="Select a JSON file",
             action=Gtk.FileChooserAction.OPEN,
