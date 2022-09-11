@@ -28,13 +28,13 @@ to_jq(path, data)
 
 import numbers
 import json
-import os
 import re
 import sys
 import gi
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk
+gi.require_version('Adw', '1')
+gi.require_version("Gtk", "4.0")
+from gi.repository import Adw, Gtk, Gdk, Gio
 
 # Key/property names which match this regex syntax may appear in a
 # JSON path in their original unquoted form in dotted notation.
@@ -184,7 +184,7 @@ class JSONTreeStore(Gtk.TreeStore):
 
 class JSONTreeView(Gtk.TreeView):
     """A widget for displaying JSON.
-    
+
     Args:
       title -- The column title."""
 
@@ -199,12 +199,10 @@ class JSONTreeView(Gtk.TreeView):
         self.column.set_title(title)
 
 
-class JSONViewerWindow(Gtk.Window):
-    def __init__(self):
-        super().__init__(title="JSON Viewer")
+class JSONViewerWindow(Gtk.ApplicationWindow):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.set_default_size(600, 400)
-
-        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
         self.label_info = Gtk.Label()
         self.label_info.set_selectable(True)
@@ -238,65 +236,69 @@ class JSONViewerWindow(Gtk.Window):
         else:
             self.label_info.set_text("No data loaded")
 
-        menubar = Gtk.MenuBar()
-        menuitem_file = Gtk.MenuItem(label="File")
-        menubar.append(menuitem_file)
-        menu = Gtk.Menu()
-        menuitem_file.set_submenu(menu)
-        menuitem_file_open = Gtk.MenuItem(label="Open")
-        menuitem_file_open.connect("activate", self.open_callback)
-        menu.append(menuitem_file_open)
+        open_button = Gtk.Button()
+        open_button.set_label('_Open')
+        open_button.set_tooltip_text('Open a JSON file')
+        open_button.set_use_underline(True)
+        open_button.connect('clicked', self.open_callback)
+        
+        header = Gtk.HeaderBar()
+        header.set_show_title_buttons(True)
+        header.pack_start(open_button)
+        self.set_titlebar(header)
 
         self.model = JSONTreeStore()
         swintree = Gtk.ScrolledWindow()
+        swintree.set_vexpand(True)
         swinpath = Gtk.ScrolledWindow()
         self.treeview = JSONTreeView(column_title)
         self.treeview.set_model(self.model)
-        self.treeview.connect(
-            "button-release-event", self.on_treeview_button_press_event
-        )
+
+        gesture = Gtk.GestureClick.new()
+        gesture.connect("pressed", self.on_treeview_button_press_event)
+        gesture.set_button(Gdk.BUTTON_SECONDARY)
+        self.treeview.add_controller(gesture)
 
         tree_selection = self.treeview.get_selection()
         tree_selection.connect("changed", self.on_selection_changed)
 
-        box = Gtk.VBox()
-        box.pack_start(menubar, False, False, 1)
-        box.pack_start(swintree, True, True, 1)
-        box.pack_start(swinpath, False, False, 1)
-        swintree.add(self.treeview)
-        swinpath.add(self.label_info)
-        self.add(box)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.append(swintree)
+        box.append(swinpath)
+        swintree.set_child(self.treeview)
+        swinpath.set_child(self.label_info)
+        self.set_child(box)
 
         if self.data:
             self.model.walk_tree(self.data)
 
-    def copy_path_to_clipboard(self, menuitem):
+    def copy_path_to_clipboard(self, action, param):
         tree_selection = self.treeview.get_selection()
         jq = self._tree_selection_to_jq(tree_selection)
-        self.clipboard.set_text(jq, -1)
+        clipboard = Gdk.Display.get_clipboard(Gdk.Display.get_default())
+        clipboard.set_content(Gdk.ContentProvider.new_for_value(jq))
 
     def parse_json(self, data):
         self.data = json.loads(data)
 
     def open_callback(self, action):
         filefilter = Gtk.FileFilter()
-        filefilter.add_pattern("*.json")
+        filefilter.add_suffix("json")
+        filefilter.set_name('JSON')
         dialog = Gtk.FileChooserDialog(
             title="Select a JSON file",
-            parent=self,
-            action=Gtk.FileChooserAction.OPEN
+            action=Gtk.FileChooserAction.OPEN,
+            transient_for=self
         )
         dialog.add_buttons(
-            Gtk.STOCK_CANCEL,
+            '_Cancel',
             Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_OPEN,
+            '_Open',
             Gtk.ResponseType.ACCEPT,
         )
-        dialog.set_local_only(False)
         dialog.set_filter(filefilter)
         dialog.connect("response", self.open_response_cb)
-        dialog.run()
-        dialog.destroy()
+        dialog.present()
 
     def open_response_cb(self, dialog, response_id):
         if response_id == Gtk.ResponseType.ACCEPT:
@@ -308,37 +310,43 @@ class JSONViewerWindow(Gtk.Window):
                     self.model.clear()
                     self.model.walk_tree(self.data)
                     self.label_info.set_text("")
-                    self.treeview.set_title(dialog.get_filename())
+                    self.treeview.set_title(dialog.get_file().get_path())
+                    dialog.destroy()
                 else:
-                    raise ValueError("Error while opening " + dialog.get_filename())
+                    raise ValueError("Error while opening " + dialog.get_file().get_path())
             except Exception as e:
                 self.label_info.set_text(str(e))
+        else:
+            dialog.destroy()
 
     def on_selection_changed(self, tree_selection):
         jq = self._tree_selection_to_jq(tree_selection)
         self.label_info.set_text(jq)
 
-    def on_treeview_button_press_event(self, treeview, event):
-        if event.button == 3:
-            x = int(event.x)
-            y = int(event.y)
-            time = event.time
-            pathinfo = treeview.get_path_at_pos(x, y)
+    def on_treeview_button_press_event(self, event, clicks, x, y):
+        pathinfo = self.treeview.get_path_at_pos(x, y)
 
-            if pathinfo is not None:
-                path, col, cellx, celly = pathinfo
-                treeview.grab_focus()
-                treeview.set_cursor(path, col, 0)
+        if pathinfo is not None:
+            path, col, cellx, celly = pathinfo
+            self.treeview.grab_focus()
+            self.treeview.set_cursor(path, col, 0)
 
-                context_menu = Gtk.Menu()
-                menuitem_copy_path = Gtk.MenuItem(label="Copy Path to Clipboard")
-                menuitem_copy_path.connect("activate", self.copy_path_to_clipboard)
-                menuitem_copy_path.show()
-                context_menu.append(menuitem_copy_path)
+            menu = Gio.Menu.new()
+            action = Gio.SimpleAction.new("copy-path", None)
+            action.connect("activate", self.copy_path_to_clipboard)
+            self.add_action(action)
+            menu.append("Copy Path to Clipboard", "win.copy-path")
 
-                context_menu.popup(None, None, None, event.button, time, 0)
-                return True
-        return False
+            rect = Gdk.Rectangle()
+            rect.x = x
+            rect.y = y
+
+            context_menu = Gtk.PopoverMenu()
+            context_menu.set_has_arrow(False)
+            context_menu.set_menu_model(menu)
+            context_menu.set_parent(self.treeview)
+            context_menu.set_pointing_to(rect)
+            context_menu.popup()
 
     def _tree_selection_to_jq(self, tree_selection):
         (model, iter_current) = tree_selection.get_selected()
@@ -348,9 +356,12 @@ class JSONViewerWindow(Gtk.Window):
             jq = to_jq(path, self.data)
         return jq
 
+def on_activate(app):
+    win = JSONViewerWindow(application=app, title="JSON Viewer")
+    win.present()
+
 
 if __name__ == "__main__":
-    win = JSONViewerWindow()
-    win.connect("delete-event", Gtk.main_quit)
-    win.show_all()
-    Gtk.main()
+    app = Adw.Application()
+    app.connect('activate', on_activate)
+    app.run(None)
